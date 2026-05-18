@@ -69,10 +69,30 @@
 
   <!-- ── App Bootstrap ── -->
   <script type="module">
-    // Make supabase-js available as a named export for our module
-    window.supabaseJs = supabase;
-    // Bootstrap the app
-    import('./js/app.js');
+    const loginContainer = document.getElementById('login-container');
+
+    try {
+      // Make supabase-js available to browser modules without relying on a bare global binding.
+      window.supabaseJs = window.supabase;
+
+      if (!window.supabaseJs?.createClient) {
+        throw new Error('Supabase CDN script did not expose createClient.');
+      }
+
+      await import('./js/app.js');
+    } catch (err) {
+      console.error('Failed to load Fhdan Fleet Hub:', err);
+      document.getElementById('shell').style.display = 'none';
+      loginContainer.style.display = 'flex';
+      loginContainer.innerHTML = `
+        <div class="startup-error-card" role="alert">
+          <div class="login-logo-icon">FH</div>
+          <h1>Fhdan Fleet Hub could not load</h1>
+          <p>The app shell loaded, but the JavaScript bundle failed before the login screen could render.</p>
+          <pre>${String(err?.message || err).replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]))}</pre>
+          <button class="btn btn-primary" type="button" onclick="location.reload()">Reload</button>
+        </div>`;
+    }
   </script>
 
 </body>

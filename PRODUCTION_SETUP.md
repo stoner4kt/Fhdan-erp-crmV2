@@ -12,6 +12,7 @@ This guide deploys the MVP as a production-ready Cloudflare Pages application ba
 | Telegram bot token | Telegram → message `@BotFather` → `/newbot` | Supabase Edge Function secret `TELEGRAM_BOT_TOKEN` |
 | Telegram group chat ID | Add the bot to the group, send a message, then open `https://api.telegram.org/bot<token>/getUpdates` | Supabase Edge Function secret `TELEGRAM_OPERATIONS_CHAT_ID` |
 | CallMeBot API key | Follow CallMeBot WhatsApp activation instructions at CallMeBot | Supabase Edge Function secret `CALLMEBOT_API_KEY` |
+| CallMeBot recipients | WhatsApp numbers activated with CallMeBot, separated by commas, semicolons, or new lines | Supabase Edge Function secret `CALLMEBOT_RECIPIENTS` |
 | Resend API key | Resend Dashboard → API Keys | Supabase Edge Function secret `RESEND_API_KEY` |
 | Email sender | Resend Dashboard → Domains, verify your domain | Supabase Edge Function secret `EMAIL_FROM` |
 | Cloudflare Account ID/API token | Cloudflare Dashboard → My Profile → API Tokens | Local `wrangler` deployment only |
@@ -78,6 +79,7 @@ supabase secrets set SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
 supabase secrets set TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
 supabase secrets set TELEGRAM_OPERATIONS_CHAT_ID=YOUR_TELEGRAM_GROUP_CHAT_ID
 supabase secrets set CALLMEBOT_API_KEY=YOUR_CALLMEBOT_KEY
+supabase secrets set CALLMEBOT_RECIPIENTS='+27821234567,+27827654321'
 supabase secrets set RESEND_API_KEY=YOUR_RESEND_KEY
 supabase secrets set EMAIL_FROM='Fhdan Fleet <noreply@yourdomain.co.za>'
 ```
@@ -93,6 +95,7 @@ Use `notification-dispatcher` for Telegram, CallMeBot, and email alerts. Use `ge
    - Framework preset: None
    - Build command: leave blank
    - Build output directory: `/`
+   - The repo also includes `pages_build_output_dir = "."` in `wrangler.toml` so Cloudflare Pages no longer skips the Wrangler config warning shown in your deploy log.
 5. Add Pages environment variables:
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
@@ -104,7 +107,7 @@ The Cloudflare Pages Function `functions/api/staff-users.js` uses these variable
 
 ## 7. Deploy the Cloudflare notification Worker
 
-The Worker in `workers/notification-cron.js` calls the Supabase `notification-dispatcher` Edge Function every 15 minutes via `wrangler.toml`.
+The Worker in `workers/notification-cron.js` calls the Supabase `notification-dispatcher` Edge Function every 15 minutes via `wrangler.toml`. This scheduled Worker is separate from the Pages deployment: Pages hosts the static app and `/functions/api/*`, while this Worker provides cron triggers that Pages Functions do not run on their own.
 
 ```bash
 npm install -g wrangler
@@ -128,7 +131,7 @@ crons = ["*/15 * * * *"]
 3. Send any message in the group.
 4. Visit `https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getUpdates` and copy the group `chat.id`.
 5. Put the chat ID into `TELEGRAM_OPERATIONS_CHAT_ID`.
-6. For CallMeBot, activate the target WhatsApp number and set `CALLMEBOT_API_KEY`.
+6. For CallMeBot, activate every target WhatsApp number, set `CALLMEBOT_API_KEY`, and set `CALLMEBOT_RECIPIENTS` to the activated phone numbers separated by commas, semicolons, or new lines.
 7. For email, verify your sending domain in Resend and set `RESEND_API_KEY` and `EMAIL_FROM`.
 
 The dispatcher supports high-value booking, unpaid deposit, late return, and 24-hour arrival alert templates. Arrival alerts are queued from bookings with `arrival_datetime` approximately 24 hours away.
@@ -139,7 +142,7 @@ The dispatcher supports high-value booking, unpaid deposit, late return, and 24-
 - Create `document-vault` and `generated-documents` private buckets.
 - Configure `js/config.js` with anon credentials.
 - Configure Cloudflare Pages environment variables.
-- Deploy Supabase Edge Functions and set secrets.
+- Deploy Supabase Edge Functions and set secrets, including `CALLMEBOT_RECIPIENTS` for multiple WhatsApp recipients.
 - Deploy Cloudflare Worker cron and set secrets.
 - Add Cloudflare Pages URL/custom domain to Supabase Auth URL Configuration.
 - Create the first `system_admin`, then add remaining staff through Settings.

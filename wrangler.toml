@@ -2,5 +2,9 @@ name = "fhdan-notification-cron"
 main = "workers/notification-cron.js"
 compatibility_date = "2026-05-18"
 
+# Cloudflare Pages reads this when the repo is connected as a Pages project.
+# The app is static and deploys from the repository root.
+pages_build_output_dir = "."
+
 [triggers]
 crons = ["*/15 * * * *"]

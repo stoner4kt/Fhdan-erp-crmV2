@@ -32,18 +32,52 @@ register('*', (container) => {
 });
 
 async function bootstrap() {
-  const { session } = await initAuth();
-
-  // Show/hide shell based on auth state
-  function updateShell() {
-    const authenticated = isAuthenticated();
-    document.getElementById('shell').style.display = authenticated ? 'flex' : 'none';
-    document.getElementById('login-container').style.display = authenticated ? 'none' : 'flex';
-    if (authenticated) renderSidebar();
+  try {
+    await initAuth();
+    updateShell();
+    dispatch(location.pathname);
+  } catch (err) {
+    console.error('Application bootstrap failed:', err);
+    showStartupError(err);
   }
+}
 
-  updateShell();
-  dispatch(location.pathname);
+function updateShell() {
+  const authenticated = isAuthenticated();
+  const shell = document.getElementById('shell');
+  const loginContainer = document.getElementById('login-container');
+
+  if (shell) shell.style.display = authenticated ? 'flex' : 'none';
+  if (loginContainer) loginContainer.style.display = authenticated ? 'none' : 'flex';
+  if (authenticated) renderSidebar();
+}
+
+function showStartupError(err) {
+  const loginContainer = document.getElementById('login-container');
+  const shell = document.getElementById('shell');
+  if (shell) shell.style.display = 'none';
+  if (!loginContainer) return;
+
+  const message = err?.message || 'Unknown startup error';
+  loginContainer.style.display = 'flex';
+  loginContainer.innerHTML = `
+    <div class="startup-error-card" role="alert">
+      <div class="login-logo-icon">FH</div>
+      <h1>Fhdan Fleet Hub could not start</h1>
+      <p>The app loaded, but its JavaScript startup failed before the login screen could be rendered.</p>
+      <pre>${escapeHtml(message)}</pre>
+      <button class="btn btn-primary" type="button" onclick="location.reload()">Reload</button>
+    </div>`;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;',
+  }[char]));
 }
 
 bootstrap();
