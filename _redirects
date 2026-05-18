@@ -1,1 +1,12 @@
-/* /index.html 200
+/login /index.html 200
+/dashboard /index.html 200
+/fleet /index.html 200
+/bookings /index.html 200
+/bookings/new /index.html 200
+/clients /index.html 200
+/finance /index.html 200
+/vault /index.html 200
+/drivers /index.html 200
+/driver-trips /index.html 200
+/settings /index.html 200
+/setup /index.html 200
