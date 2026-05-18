@@ -1,4 +1,4 @@
-name = "fhdan-notification-cron"
+name = "fhdantours-erp"
 main = "workers/notification-cron.js"
 compatibility_date = "2026-05-18"
 
