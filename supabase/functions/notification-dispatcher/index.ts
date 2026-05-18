@@ -5,6 +5,7 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') || '';
 const CALLMEBOT_API_KEY = Deno.env.get('CALLMEBOT_API_KEY') || '';
+const CALLMEBOT_RECIPIENTS = parseRecipients(Deno.env.get('CALLMEBOT_RECIPIENTS') || '');
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || '';
 
 serve(async (req) => {
@@ -48,14 +49,35 @@ async function queueArrivalAlerts(supabase: ReturnType<typeof createClient>) {
 
   for (const booking of bookings ?? []) {
     const payload = { reference: booking.booking_reference, client: booking.clients?.full_name, client_phone: booking.clients?.phone, vehicle: booking.vehicles?.registration, arrival: booking.arrival_datetime };
-    await supabase.from('notifications').upsert({
-      booking_id: booking.id,
-      channel: 'telegram',
-      recipient: Deno.env.get('TELEGRAM_OPERATIONS_CHAT_ID') || 'operations',
-      template_key: 'arrival_24h',
-      payload,
-      scheduled_for: new Date().toISOString(),
-    }, { onConflict: 'booking_id,channel,template_key' });
+    const scheduled_for = new Date().toISOString();
+    const telegramRecipient = Deno.env.get('TELEGRAM_OPERATIONS_CHAT_ID');
+    const jobs = [];
+
+    if (telegramRecipient) {
+      jobs.push({
+        booking_id: booking.id,
+        channel: 'telegram',
+        recipient: telegramRecipient,
+        template_key: 'arrival_24h',
+        payload,
+        scheduled_for,
+      });
+    }
+
+    for (const recipient of CALLMEBOT_RECIPIENTS) {
+      jobs.push({
+        booking_id: booking.id,
+        channel: 'callmebot',
+        recipient,
+        template_key: 'arrival_24h',
+        payload,
+        scheduled_for,
+      });
+    }
+
+    if (jobs.length) {
+      await supabase.from('notifications').upsert(jobs, { onConflict: 'booking_id,channel,template_key,recipient' });
+    }
   }
 }
 
@@ -86,6 +108,13 @@ async function sendJob(job: any) {
     return;
   }
   throw new Error(`Unsupported channel ${job.channel}`);
+}
+
+function parseRecipients(value: string) {
+  return [...new Set(value
+    .split(/[\n,;]+/)
+    .map((recipient) => recipient.trim())
+    .filter(Boolean))];
 }
 
 function renderMessage(key: string, payload: Record<string, unknown>) {

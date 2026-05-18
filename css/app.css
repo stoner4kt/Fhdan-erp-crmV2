@@ -1108,3 +1108,41 @@ code {
   #voucher-print, #voucher-print * { visibility: visible; }
   #voucher-print { position: absolute; inset: 0; width: 100%; }
 }
+
+/* ─── Startup Error Fallback ───────────────────────────────── */
+.startup-error-card {
+  width: min(92vw, 520px);
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.startup-error-card h1 {
+  margin: 14px 0 8px;
+  font-size: 22px;
+  color: var(--text);
+}
+
+.startup-error-card p {
+  margin-bottom: 16px;
+  color: var(--text2);
+}
+
+.startup-error-card pre {
+  margin: 0 0 18px;
+  padding: 12px;
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--bg2);
+  color: var(--red);
+  font-family: var(--mono);
+  font-size: 12px;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

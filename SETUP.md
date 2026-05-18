@@ -215,7 +215,7 @@ For booking confirmations and payment receipts, use Supabase Edge Functions:
 → Check RLS policies ran correctly. In Supabase → Table Editor, select a table and click the Policies tab.
 
 **404 error when refreshing on any page other than /**
-→ Confirm the `_redirects` file is in the root of your deployed Cloudflare Pages project. It must contain exactly: `/* /index.html 200`
+→ Confirm the `_redirects` file is in the root of your deployed Cloudflare Pages project and contains explicit app route rewrites such as `/dashboard /index.html 200`. A blanket `/* /index.html 200` can be rejected by Cloudflare as an infinite loop.
 
 **CORS errors**
 → Add your deployed URL to Supabase → Authentication → URL Configuration → Redirect URLs.

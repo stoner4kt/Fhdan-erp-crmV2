@@ -472,7 +472,7 @@ CREATE INDEX idx_invoices_booking_id ON public.invoices(booking_id);
 CREATE INDEX idx_documents_entity ON public.documents(entity_type, entity_id);
 CREATE INDEX idx_maintenance_vehicle_range ON public.maintenance_windows USING gist (vehicle_id, tstzrange(starts_at, ends_at, '[)'));
 CREATE INDEX idx_notifications_due ON public.notifications(status, scheduled_for);
-CREATE UNIQUE INDEX idx_notifications_booking_template ON public.notifications(booking_id, channel, template_key);
+CREATE UNIQUE INDEX idx_notifications_booking_template ON public.notifications(booking_id, channel, template_key, recipient);
 CREATE INDEX idx_audit_logs_record ON public.audit_logs(table_name, record_id, changed_at DESC);
 CREATE UNIQUE INDEX idx_bookings_vehicle_no_overlap ON public.bookings USING gist (vehicle_id, tstzrange(pickup_datetime, dropoff_datetime, '[)')) WHERE (status NOT IN ('cancelled','no_show','completed'));
 

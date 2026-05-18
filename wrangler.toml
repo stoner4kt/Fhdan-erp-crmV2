@@ -1,6 +1,4 @@
-name = "fhdan-notification-cron"
-main = "workers/notification-cron.js"
-compatibility_date = "2026-05-18"
-
-[triggers]
-crons = ["*/15 * * * *"]
+# Cloudflare Pages configuration.
+# Keep Worker-only settings in workers/wrangler.toml; Pages validation rejects
+# `main` and scheduled `triggers` in the root Pages config.
+pages_build_output_dir = "."

@@ -1,0 +1,6 @@
+name = "fhdan-notification-cron"
+main = "notification-cron.js"
+compatibility_date = "2026-05-18"
+
+[triggers]
+crons = ["*/15 * * * *"]
