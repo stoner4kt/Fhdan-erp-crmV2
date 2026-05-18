@@ -1,7 +1,7 @@
 import { supabase } from '../supabase-client.js';
 import { formatCurrency, statusBadge, showToast, showModal, closeModal, loading, debounce, escapeHtml, confirmDialog } from '../utils.js';
-import { can, getRole } from '../rbac.js';
-import { getRole as getAuthRole } from '../auth.js';
+import { can } from '../rbac.js';
+import { getRole } from '../auth.js';
 
 const CATEGORIES = ['all','sedan','suv','luxury','minibus','bus','van','pickup'];
 const STATUSES = ['all','available','booked','maintenance','inactive'];
@@ -9,7 +9,7 @@ const STATUSES = ['all','available','booked','maintenance','inactive'];
 let _filter = { status: 'all', q: '' };
 
 export default async function render(container) {
-  const role = getAuthRole();
+  const role = getRole();
   container.innerHTML = `
     <div class="page-header">
       <div><h2>Fleet</h2><p class="page-sub">Vehicle management and availability</p></div>
@@ -62,7 +62,7 @@ async function loadVehicles(container) {
     );
   }
 
-  const role = getAuthRole();
+  const role = getRole();
   if (vehicles.length === 0) {
     grid.innerHTML = '<div class="empty-state"><p>No vehicles found.</p></div>';
     return;
