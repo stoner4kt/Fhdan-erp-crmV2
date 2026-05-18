@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Fhdan Fleet Hub — Fleet Management System">
+  <title>Fhdan Fleet Hub</title>
+
+  <!-- Supabase JS v2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/app.css">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f59e0b'/><text y='.9em' font-size='60' x='15' font-weight='bold' fill='%23000'>FH</text></svg>">
+</head>
+<body>
+
+  <!-- ── Login (shown when logged out) ── -->
+  <div id="login-container" style="display:none"></div>
+
+  <!-- ── App Shell (shown when logged in) ── -->
+  <div id="shell" style="display:none">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"></aside>
+
+    <!-- Main area -->
+    <div id="main">
+      <!-- Mobile topbar -->
+      <header id="topbar">
+        <button id="hamburger" aria-label="Toggle navigation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <span style="font-size:14px; font-weight:600; color:var(--text2)">Fhdan Fleet Hub</span>
+      </header>
+
+      <!-- Page content -->
+      <main id="content">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <span>Loading...</span>
+        </div>
+      </main>
+    </div>
+
+  </div>
+
+  <!-- ── Modal ── -->
+  <div id="modal">
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-title">Modal</h3>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
+      </div>
+      <div id="modal-body"></div>
+      <div id="modal-footer"></div>
+    </div>
+  </div>
+
+  <!-- ── Toasts ── -->
+  <div id="toast-container"></div>
+
+  <!-- ── App Bootstrap ── -->
+  <script type="module">
+    // Make supabase-js available as a named export for our module
+    window.supabaseJs = supabase;
+    // Bootstrap the app
+    import('./js/app.js');
+  </script>
+
+</body>
+</html>
