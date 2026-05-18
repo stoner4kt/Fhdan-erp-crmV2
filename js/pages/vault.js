@@ -39,7 +39,7 @@ async function loadDocuments(typeFilter) {
   const tableDiv = document.getElementById('vault-table');
   loading(tableDiv);
 
-  let q = supabase.from('documents').select('*').order('created_at', { ascending: false });
+  let q = supabase.from('document-vault').select('*').order('created_at', { ascending: false });
   if (typeFilter !== 'all') q = q.eq('document_type', typeFilter);
 
   const { data, error } = await q;
@@ -75,7 +75,7 @@ async function loadDocuments(typeFilter) {
     btn.addEventListener('click', async () => {
       const ok = await confirmDialog('Delete this document? This cannot be undone.');
       if (!ok) return;
-      const { error } = await supabase.from('documents').delete().eq('id', btn.dataset.id);
+      const { error } = await supabase.from('document-vault').delete().eq('id', btn.dataset.id);
       if (error) { showToast('Failed to delete.', 'error'); return; }
       showToast('Document deleted.'); loadDocuments(document.querySelector('#doc-type-filter .chip.active')?.dataset.type || 'all');
     });
@@ -112,7 +112,7 @@ async function uploadForm(container) {
       <div class="form-group form-full"><label>Notes</label>
         <textarea name="notes" rows="2"></textarea></div>
       <div class="form-group form-full">
-        <p class="text-muted text-sm">Note: File upload requires Supabase Storage to be configured. For now, provide the file name and path manually. See the Setup Guide for storage configuration.</p>
+        <p class="text-muted text-sm">Note: File upload requires the private Supabase Storage bucket document-vault to be configured. For now, provide the file name and path manually. See the Setup Guide for storage configuration.</p>
       </div>
     </form>`,
     `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
@@ -139,7 +139,7 @@ async function uploadForm(container) {
     const profile = getProfile();
     const btn = document.getElementById('save-doc-btn');
     btn.disabled = true; btn.textContent = 'Saving...';
-    const { error } = await supabase.from('documents').insert({
+    const { error } = await supabase.from('document-vault').insert({
       ...data, file_size: 0, uploaded_by: profile?.id,
     });
     if (error) { showToast(error.message, 'error'); btn.disabled = false; btn.textContent = 'Save Document Record'; return; }

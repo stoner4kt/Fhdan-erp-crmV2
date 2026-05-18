@@ -83,6 +83,7 @@ async function loadBookings() {
             <td class="amount">${formatCurrency(b.total_zar)}</td>
             <td>${statusBadge(b.status)}</td>
             ${can(role, 'edit_booking') ? `<td class="actions">
+              <button class="btn btn-sm btn-primary voucher-booking" data-id="${b.id}">Voucher</button>
               <button class="btn btn-sm btn-secondary edit-booking" data-id="${b.id}">Edit Status</button>
               ${can(role, 'delete_booking') ? `<button class="btn btn-sm btn-danger del-booking" data-id="${b.id}">Delete</button>` : ''}
             </td>` : ''}
@@ -97,6 +98,15 @@ async function loadBookings() {
     </div>` : ''}`;
 
   window._bPage = p => { _page = p; loadBookings(); };
+
+  document.querySelectorAll('.voucher-booking').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const { data: b } = await supabase.from('bookings')
+        .select('*, clients(full_name, phone, email), vehicles(registration, make, model), drivers(full_name, phone)')
+        .eq('id', btn.dataset.id).single();
+      voucherModal(b);
+    });
+  });
 
   document.querySelectorAll('.edit-booking').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -144,4 +154,28 @@ function editStatusModal(booking) {
     if (error) { showToast(error.message, 'error'); btn.disabled = false; btn.textContent = 'Update Status'; return; }
     showToast('Booking updated.'); closeModal(); loadBookings();
   });
+}
+
+
+function voucherModal(booking) {
+  if (!booking) return;
+  const voucherNo = booking.voucher_number || `VCH-${booking.booking_reference}`;
+  const html = `
+    <div id="voucher-print" class="doc-print">
+      <h2>Fhdan Tourism Travel Voucher</h2>
+      <p class="mono">${escapeHtml(voucherNo)}</p>
+      <hr>
+      <p><strong>Booking:</strong> ${escapeHtml(booking.booking_reference)}</p>
+      <p><strong>Client:</strong> ${escapeHtml(booking.clients?.full_name || '—')} · ${escapeHtml(booking.clients?.phone || '')}</p>
+      <p><strong>Trip:</strong> ${escapeHtml(booking.pickup_location)} → ${escapeHtml(booking.dropoff_location)}</p>
+      <p><strong>Pickup:</strong> ${formatDateTime(booking.pickup_datetime)}</p>
+      <p><strong>Dropoff:</strong> ${formatDateTime(booking.dropoff_datetime)}</p>
+      <p><strong>Vehicle:</strong> ${escapeHtml(booking.vehicles ? `${booking.vehicles.registration} — ${booking.vehicles.make} ${booking.vehicles.model}` : '—')}</p>
+      <p><strong>Driver:</strong> ${escapeHtml(booking.drivers?.full_name || 'Self-drive')} ${booking.drivers?.phone ? `· ${escapeHtml(booking.drivers.phone)}` : ''}</p>
+      <p><strong>Special Requirements:</strong> ${escapeHtml(booking.special_requirements || 'None')}</p>
+    </div>`;
+  showModal(`Voucher — ${booking.booking_reference}`, html,
+    `<button class="btn btn-secondary" onclick="closeModal()">Close</button>
+     <button class="btn btn-primary" id="print-voucher-btn">Download / Print PDF</button>`);
+  document.getElementById('print-voucher-btn').addEventListener('click', () => window.print());
 }

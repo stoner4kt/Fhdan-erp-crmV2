@@ -10,6 +10,7 @@ import clientsPage from './pages/clients.js';
 import financePage from './pages/finance.js';
 import vaultPage from './pages/vault.js';
 import driversPage from './pages/drivers.js';
+import driverTripsPage from './pages/driver-trips.js';
 import settingsPage from './pages/settings.js';
 import setupPage from './pages/setup.js';
 
@@ -23,6 +24,7 @@ register('/clients', clientsPage);
 register('/finance', financePage);
 register('/vault', vaultPage);
 register('/drivers', driversPage);
+register('/driver-trips', driverTripsPage);
 register('/settings', settingsPage);
 register('/setup', setupPage);
 register('*', (container) => {

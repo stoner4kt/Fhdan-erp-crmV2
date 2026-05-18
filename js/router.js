@@ -1,6 +1,19 @@
 import { isAuthenticated, getRole } from './auth.js';
 import { can } from './rbac.js';
 
+const ROLE_HOME = {
+  system_admin: '/dashboard',
+  manager: '/dashboard',
+  finance_officer: '/finance',
+  sales_agent: '/bookings',
+  fleet_coordinator: '/fleet',
+  driver: '/driver-trips',
+};
+
+export function homeForRole(role) {
+  return ROLE_HOME[role] || '/dashboard';
+}
+
 const routes = {};
 let currentPath = null;
 
@@ -18,9 +31,9 @@ export async function dispatch(path) {
     history.replaceState({}, '', '/login');
     path = '/login';
   }
-  if (isAuthenticated() && path === '/login') {
-    history.replaceState({}, '', '/dashboard');
-    path = '/dashboard';
+  if (isAuthenticated() && (path === '/login' || path === '/')) {
+    path = homeForRole(getRole());
+    history.replaceState({}, '', path);
   }
 
   // Strip trailing slash (except root)
@@ -32,6 +45,11 @@ export async function dispatch(path) {
   const role = getRole();
   const permKey = clean.replace('/', '').replace('-', '_') || 'dashboard';
   if (isAuthenticated() && clean !== '/login' && !can(role, permKey === '' ? 'dashboard' : permKey)) {
+    const fallback = homeForRole(role);
+    if (clean !== fallback && routes[fallback]) {
+      history.replaceState({}, '', fallback);
+      return dispatch(fallback);
+    }
     const content = document.getElementById('content');
     if (content) content.innerHTML = '<div class="access-denied"><h2>Access Denied</h2><p>You do not have permission to view this page.</p></div>';
     return;

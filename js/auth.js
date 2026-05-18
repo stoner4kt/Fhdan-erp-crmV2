@@ -35,6 +35,12 @@ export async function login(email, password) {
   if (error) throw error;
   _session = data.session;
   await loadProfile(data.user.id);
+  if (!_profile || _profile.is_active === false) {
+    await supabase.auth.signOut();
+    _profile = null;
+    _session = null;
+    throw new Error('This account is inactive or has no staff profile. Contact a system administrator.');
+  }
   return { session: data.session, profile: _profile };
 }
 

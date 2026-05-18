@@ -7,11 +7,13 @@ export default async function render(container) {
 
       <div class="setup-section">
         <h3>Overview</h3>
-        <p>Fhdan Fleet Hub is a self-hosted fleet management system built with vanilla HTML/CSS/JS using Supabase as the backend and Cloudflare Pages for hosting. This guide walks you through the complete setup process.</p>
+        <p>Fhdan Fleet Hub is a self-hosted fleet management system built with vanilla HTML/CSS/JS using Supabase, Cloudflare Pages, Supabase Edge Functions, and an optional Cloudflare Worker cron. See <code>PRODUCTION_SETUP.md</code> in the source handover for the complete credential-by-credential production guide.</p>
         <div class="setup-tech">
           <span class="tech-badge">HTML / CSS / JS</span>
           <span class="tech-badge">Supabase</span>
           <span class="tech-badge">Cloudflare Pages</span>
+          <span class="tech-badge">Cloudflare Workers</span>
+          <span class="tech-badge">Supabase Edge Functions</span>
           <span class="tech-badge">PostgreSQL (via Supabase)</span>
         </div>
       </div>
@@ -32,7 +34,7 @@ export default async function render(container) {
           <li>In your Supabase project, go to <strong>SQL Editor</strong> → <strong>New Query</strong>.</li>
           <li>Open the file <code>supabase/schema.sql</code> from the downloaded ZIP.</li>
           <li>Paste the entire contents and click <strong>Run</strong>. You should see "Success. No rows returned."</li>
-          <li>This creates all tables, enums, RLS policies, indexes, and triggers.</li>
+          <li>This creates all tables, enums, RLS policies, indexes, double-booking prevention triggers, maintenance windows, notifications, 360° history RPC, and immutable audit logging.</li>
         </ol>
         <div class="callout callout-warning">
           <strong>Important:</strong> Run the schema BEFORE creating any auth users, otherwise the trigger that auto-creates profile records will not fire for users created before the schema exists.
@@ -138,18 +140,18 @@ export const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';  // ← Replace this
       </div>
 
       <div class="setup-section">
-        <h3>Step 9 — Supabase Storage for Document Vault (Optional)</h3>
+        <h3>Step 9 — Supabase Storage for Document Vault</h3>
         <p>To enable actual file uploads in the Document Vault:</p>
         <ol>
           <li>In Supabase, go to <strong>Storage</strong> → <strong>New bucket</strong>.</li>
-          <li>Name it <code>documents</code>, set it to <strong>Private</strong>.</li>
-          <li>In <code>js/pages/vault.js</code>, uncomment and implement the storage upload code using <code>supabase.storage.from('documents').upload(...)</code>.</li>
+          <li>Create private buckets named <code>document-vault</code> and <code>generated-documents</code>.</li>
+          <li>In <code>js/pages/vault.js</code>, uncomment and implement the storage upload code using <code>supabase.storage.from('document-vault').upload(...)</code>.</li>
         </ol>
       </div>
 
       <div class="setup-section">
-        <h3>Step 10 — Email Notifications (Optional)</h3>
-        <p>Configure outbound email for booking confirmations and payment receipts using one of:</p>
+        <h3>Step 10 — Edge Functions, Worker Cron & Notifications</h3>
+        <p>Deploy <code>supabase/functions/notification-dispatcher</code> and <code>supabase/functions/generate-booking-documents</code>, then deploy the Cloudflare Worker in <code>workers/notification-cron.js</code>. Configure Telegram, CallMeBot, and Resend secrets as described in <code>PRODUCTION_SETUP.md</code>.</p><p>Configure outbound email for booking confirmations and payment receipts using one of:</p>
         <ul>
           <li><strong>Supabase Edge Functions</strong> — Write a serverless function that triggers on booking status changes and sends email via <a href="https://resend.com" target="_blank">Resend</a> or SendGrid. Recommended for South African businesses.</li>
           <li><strong>Postmark</strong> — Excellent deliverability for transactional emails.</li>

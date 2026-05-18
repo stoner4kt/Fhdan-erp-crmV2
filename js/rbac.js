@@ -28,7 +28,7 @@ export const PERMISSIONS = {
                       'create_vehicle','edit_vehicle',
                       'create_driver','edit_driver','upload_document'],
 
-  driver: ['dashboard','setup'],
+  driver: ['driver_trips','setup'],
 };
 
 export const NAV_ITEMS = [
@@ -39,6 +39,7 @@ export const NAV_ITEMS = [
   { path: '/finance', label: 'Finance', icon: 'dollar-sign', permission: 'finance' },
   { path: '/vault', label: 'Document Vault', icon: 'folder', permission: 'vault' },
   { path: '/drivers', label: 'Drivers', icon: 'user-check', permission: 'drivers' },
+  { path: '/driver-trips', label: 'My Trips', icon: 'route', permission: 'driver_trips' },
   { path: '/settings', label: 'Settings', icon: 'settings', permission: 'settings' },
   { path: '/setup', label: 'Setup Guide', icon: 'book-open', permission: 'setup' },
 ];
