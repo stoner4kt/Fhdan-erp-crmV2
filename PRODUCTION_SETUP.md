@@ -95,7 +95,7 @@ Use `notification-dispatcher` for Telegram, CallMeBot, and email alerts. Use `ge
    - Framework preset: None
    - Build command: leave blank
    - Build output directory: `/`
-   - The repo also includes `pages_build_output_dir = "."` in `wrangler.toml` so Cloudflare Pages no longer skips the Wrangler config warning shown in your deploy log.
+   - The root `wrangler.toml` contains only `pages_build_output_dir = "."` so Cloudflare Pages validation succeeds. Worker cron settings live in `workers/wrangler.toml` and are deployed separately.
 5. Add Pages environment variables:
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
@@ -107,17 +107,18 @@ The Cloudflare Pages Function `functions/api/staff-users.js` uses these variable
 
 ## 7. Deploy the Cloudflare notification Worker
 
-The Worker in `workers/notification-cron.js` calls the Supabase `notification-dispatcher` Edge Function every 15 minutes via `wrangler.toml`. This scheduled Worker is separate from the Pages deployment: Pages hosts the static app and `/functions/api/*`, while this Worker provides cron triggers that Pages Functions do not run on their own.
+The Worker in `workers/notification-cron.js` calls the Supabase `notification-dispatcher` Edge Function every 15 minutes via `workers/wrangler.toml`. This scheduled Worker is separate from the Pages deployment: Pages hosts the static app and `/functions/api/*`, while this Worker provides cron triggers that Pages Functions do not run on their own. Keep Worker-only keys such as `main` and `[triggers]` out of the root `wrangler.toml`, because Cloudflare Pages validation rejects them when `pages_build_output_dir` is present.
 
 ```bash
 npm install -g wrangler
 wrangler login
+cd workers
 wrangler secret put SUPABASE_URL
 wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 wrangler deploy
 ```
 
-The cron expression is in `wrangler.toml`:
+The cron expression is in `workers/wrangler.toml`:
 
 ```toml
 [triggers]
