@@ -1,5 +1,5 @@
 import { login } from '../auth.js';
-import { navigate } from '../router.js';
+import { navigate, homeForRole } from '../router.js';
 import { showToast } from '../utils.js';
 import { renderSidebar } from '../sidebar.js';
 
@@ -69,11 +69,12 @@ async function handleLogin(e) {
   errEl.style.display = 'none';
 
   try {
-    await login(email, password);
+    const { profile } = await login(email, password);
+    if (profile && profile.is_active === false) throw new Error('This account is inactive. Contact a system administrator.');
     document.getElementById('shell').style.display = 'flex';
     document.getElementById('login-container').style.display = 'none';
     renderSidebar();
-    navigate('/dashboard');
+    navigate(homeForRole(profile?.role));
   } catch (err) {
     errEl.textContent = err.message || 'Invalid credentials. Please try again.';
     errEl.style.display = 'block';

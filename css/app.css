@@ -1083,3 +1083,28 @@ code {
   .stepper { padding: 12px; gap: 4px; }
   .step-label { display: none; }
 }
+
+/* ─── Driver Portal / Timeline Cards ───────────────────────── */
+.trip-list, .timeline-list { display: grid; gap: 14px; padding: 16px; }
+.trip-card, .timeline-item {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.trip-main { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.detail-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.detail-grid span, .timeline-meta { color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.detail-grid strong { display: block; margin: 3px 0; color: var(--text); }
+.detail-grid p { color: var(--text2); font-size: 12px; }
+.timeline-item { display: grid; grid-template-columns: 140px 1fr; gap: 16px; }
+.timeline-title { font-weight: 700; color: var(--text); margin-bottom: 4px; }
+@media (max-width: 900px) { .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .timeline-item { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .detail-grid { grid-template-columns: 1fr; } }
+.doc-print { background: white; color: #111827; padding: 24px; border-radius: 8px; }
+.doc-print .mono { color: #374151; }
+@media print {
+  body * { visibility: hidden; }
+  #voucher-print, #voucher-print * { visibility: visible; }
+  #voucher-print { position: absolute; inset: 0; width: 100%; }
+}

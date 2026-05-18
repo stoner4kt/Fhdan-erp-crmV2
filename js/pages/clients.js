@@ -72,7 +72,7 @@ async function loadClients() {
       <table class="data-table">
         <thead><tr>
           <th>Name</th><th>Email</th><th>Type</th><th>Status</th><th>Country</th><th>Payment Terms</th><th>Created</th>
-          ${can(role, 'edit_client') ? '<th>Actions</th>' : ''}
+          ${can(role, 'edit_client') || ['system_admin','manager'].includes(role) ? '<th>Actions</th>' : ''}
         </tr></thead>
         <tbody>
           ${clients.map(c => `<tr>
@@ -83,8 +83,9 @@ async function loadClients() {
             <td>${escapeHtml(c.country)}</td>
             <td>${c.payment_terms_days} days</td>
             <td>${formatDate(c.created_at)}</td>
-            ${can(role, 'edit_client') ? `<td class="actions">
-              <button class="btn btn-sm btn-secondary edit-client" data-id="${c.id}">Edit</button>
+            ${can(role, 'edit_client') || ['system_admin','manager'].includes(role) ? `<td class="actions">
+              ${['system_admin','manager'].includes(role) ? `<button class="btn btn-sm btn-primary client-history" data-id="${c.id}" data-name="${escapeHtml(c.full_name)}">360°</button>` : ''}
+              ${can(role, 'edit_client') ? `<button class="btn btn-sm btn-secondary edit-client" data-id="${c.id}">Edit</button>` : ''}
               ${can(role, 'delete_client') ? `<button class="btn btn-sm btn-danger del-client" data-id="${c.id}">Delete</button>` : ''}
             </td>` : ''}
           </tr>`).join('')}
@@ -99,6 +100,10 @@ async function loadClients() {
     </div>` : ''}`;
 
   window._clientPage = (p) => { _page = p; loadClients(); };
+
+  document.querySelectorAll('.client-history').forEach(btn => {
+    btn.addEventListener('click', () => clientHistoryModal(btn.dataset.id, btn.dataset.name));
+  });
 
   document.querySelectorAll('.edit-client').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -158,4 +163,24 @@ function clientForm(client) {
     showToast(isEdit ? 'Client updated.' : 'Client added.');
     closeModal(); loadClients();
   });
+}
+
+
+async function clientHistoryModal(clientId, clientName) {
+  showModal(`360° History — ${clientName}`, '<div id="client-history-body"><div class="loading-state"><div class="spinner"></div><span>Loading unified history...</span></div></div>');
+  const body = document.getElementById('client-history-body');
+  const { data, error } = await supabase.rpc('client_360_history', { p_client_id: clientId });
+  if (error) {
+    body.innerHTML = `<div class="error-state">History unavailable. Run the latest schema migration. ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  const events = data || [];
+  body.innerHTML = events.length === 0 ? '<div class="empty-state"><p>No history for this client yet.</p></div>' : `
+    <div class="timeline-list">
+      ${events.map(e => `
+        <div class="timeline-item">
+          <div class="timeline-meta">${formatDate(e.event_at)}<br><span class="badge badge-blue">${escapeHtml(e.event_type)}</span></div>
+          <div><div class="timeline-title">${escapeHtml(e.title)}</div><p class="text-muted">${escapeHtml(e.description || '')}</p></div>
+        </div>`).join('')}
+    </div>`;
 }

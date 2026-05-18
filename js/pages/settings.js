@@ -97,17 +97,41 @@ function editUserModal(id, name, role, isActive) {
 }
 
 function inviteUserModal() {
-  showModal('Invite New User', `
-    <div class="alert-info">
-      <strong>How to invite users:</strong>
-      <p>Use the Supabase Dashboard to create auth users:</p>
-      <ol>
-        <li>Go to Authentication → Users → Add User</li>
-        <li>Enter their email and a temporary password</li>
-        <li>After creation, set their role here in Settings</li>
-      </ol>
-      <p>Or use Supabase's invite API to send email invitations.</p>
-    </div>`,
-    `<button class="btn btn-secondary" onclick="closeModal()">Close</button>`
+  showModal('Invite New Staff User', `
+    <form id="invite-user-form" class="form-grid">
+      <div class="form-group"><label>Full Name *</label><input name="full_name" required placeholder="e.g. Nomsa Mokoena"></div>
+      <div class="form-group"><label>Email *</label><input type="email" name="email" required placeholder="name@fhdan.co.za"></div>
+      <div class="form-group"><label>Temporary Password *</label><input type="password" name="password" required minlength="8" placeholder="Minimum 8 characters"></div>
+      <div class="form-group"><label>Role *</label><select name="role" required>${ROLES.map(r => `<option value="${r}">${ROLE_LABELS[r]}</option>`).join('')}</select></div>
+      <div class="form-group form-full"><label>Phone</label><input name="phone" placeholder="+27..."></div>
+      <div class="alert-info form-full"><strong>Secure creation:</strong> this calls the Cloudflare Pages Function at <code>/api/staff-users</code>, which must be configured with <code>SUPABASE_SERVICE_ROLE_KEY</code>. The service-role key never appears in browser code.</div>
+    </form>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" id="create-user-btn">Create User</button>`
   );
+
+  document.getElementById('create-user-btn').addEventListener('click', async () => {
+    const form = document.getElementById('invite-user-form');
+    if (!form.reportValidity()) return;
+    const payload = Object.fromEntries(new FormData(form));
+    const btn = document.getElementById('create-user-btn');
+    btn.disabled = true; btn.textContent = 'Creating...';
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/staff-users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error || 'Failed to create user. Check Cloudflare environment variables.');
+      showToast('Staff user created.');
+      closeModal();
+      loadUsers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Create User';
+    }
+  });
 }

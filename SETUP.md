@@ -1,5 +1,7 @@
 # Fhdan Fleet Hub — Setup Guide
 
+> For the complete production Cloudflare Pages, Supabase Edge Functions, Worker cron, notification, credentials, and role-routing guide, see [`PRODUCTION_SETUP.md`](PRODUCTION_SETUP.md).
+
 **Stack:** Vanilla HTML/CSS/JS · Supabase · Cloudflare Pages
 
 ---
@@ -162,13 +164,13 @@ export const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';              // ← your 
 To enable actual file uploads in the Document Vault:
 
 1. In Supabase, go to **Storage → New bucket**.
-2. Name it: `documents`
+2. Name it: `document-vault` and create a second private bucket named `generated-documents`
 3. Set to **Private**.
 4. Add a policy: Allow authenticated users to upload to their own folder.
 5. In `js/pages/vault.js`, implement the upload using:
    ```javascript
    const { data, error } = await supabase.storage
-     .from('documents')
+     .from('document-vault')
      .upload(`${entityType}/${entityId}/${fileName}`, file);
    ```
 
